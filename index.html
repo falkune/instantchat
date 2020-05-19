@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
+	
+	<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+	<script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+	<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div id="root"></div>
+
+	<script type="text/babel">
+
+		class App extends React.Component{
+
+			state = {
+				page : 'login', // control the screen 
+				connectedUser : undefined, // the user who is connected
+				connectedUsers : undefined, // all connected users at this moment
+		    token : undefined, // token of connected user
+		    users : undefined, // all users of the plateform
+		    name : undefined // name of the the user who is connected
+			}
+
+			// this function get all connected user.
+			reloadUser = () => {
+				const URL = 'http://instanchat.epizy.com/instantchatAPI/Api/connected/'+this.state.connectedUser+'/'+this.state.token;
+				fetchData(URL)
+				.then(data => {
+					if(data.status === 'ok'){
+						this.setState({
+							connectedUsers : data.data
+						});
+					}
+				})
+				// mise à jour des utilisateur toute les 5 minutes.
+				setTimeout(this.reloadUser, 300000); 
+			}
+
+			// show registerForm 
+			showRegisterForm = () => {
+				this.setState({
+					page : 'register'
+				});
+			}
+			// show loginForm
+			showLoginForm = () => {
+				this.setState({
+					page : 'login'
+				});
+			}
+
+			// this function get user to connect in the plateform
+			getConnected = (login, password) => {
+				const URL = 'http://instanchat.epizy.com/instantchatAPI/Api/login/'+login+'/'+password;
+				fetchData(URL)
+				.then(data => {
+					if(data.status === 'ok' || data.status === 'active'){
+
+						let id = data.id;
+		        let token = data.token;
+		        let name = data.name;
+
+		        this.getAllUsers(id, token, name);
+					}
+					else{
+		        if(data.message === "the email is not correct"){
+		          const TEXT = document.createElement("span");
+		          let content = document.createTextNode('This email is no exist get regisred...');
+		          TEXT.appendChild(content);
+		          document.getElementById('passwordError').appendChild(TEXT);
+		        }
+		        else{
+		          const TEXT = document.createElement("span");
+		          let content = document.createTextNode('the passwor is not correct...');
+		          TEXT.appendChild(content);
+		          document.getElementById('passwordError').appendChild(TEXT);
+		        }
+		      }
+				});
+			}
+
+			// this function get all user of the plateforme
+			getAllUsers = (id, token, name) => {
+				const URL = 'http://instanchat.epizy.com/instantchatAPI/Api/Users/'+id+'/'+token;
+
+				fetchData(URL)
+				.then(data => {
+					if(data.status === 'ok'){
+						this.setState({
+							connectedUser : id,
+							token : token,
+							name : name,
+							users : data.data,
+							page : 'accueil'
+						}, () => {
+							this.reloadUser();
+						})
+					}
+				})
+			}
+
+			// this function get user to register in the plateform.
+		  getRegistred = (name, email, password) => {
+		  	const URL = 'http://instanchat.epizy.com/instantchatAPI/Api/register/'+name+'/'+email+'/'+password;
+		    fetchData(URL)
+		    .then(data => {
+		      if(data.status === 'ok'){
+		        this.getConnected(email, password);
+		      }
+		      else{
+		        const TEXT = document.createElement("span");
+		        let content = document.createTextNode('This email is allready exist get connected...');
+		        TEXT.appendChild(content);
+		        document.getElementById('passwordError').appendChild(TEXT);
+		      }
+		    });
+		  }
+
+		  // this function en the connexion of the user.
+		  getOut = () => {
+		  	const URL = 'http://instanchat.epizy.com/instantchatAPI/Api/logout/'+this.state.connectedUser+'/'+this.state.token;
+		    fetchData(URL)
+		    .then(data => {
+		      if(data.status === 'ok'){
+		        this.setState({
+		          connectedUser : undefined,
+		          token : undefined,
+		          page : 'login'
+		        });
+		      }
+		    })
+		  }
+
+			render(){
+				if(this.state.page === 'login'){
+					return(
+						<div id="facade">
+							<Login 
+								registerForm={this.showRegisterForm}
+								getConnected={this.getConnected}
+							/>
+							<Logo/>
+						</div>
+					)
+				}
+				else if(this.state.page === 'register'){
+					return(
+						<div id="facade">
+							<Register 
+								loginForm={this.showLoginForm}
+								getRegistred={this.getRegistred}
+							/>
+							<Logo/>
+						</div>
+					)
+				}
+				else if(this.state.page === 'accueil' & this.state.connectedUsers !== undefined){
+					return(
+						<div id="container">
+							<Home 
+								user={this.state.connectedUser}
+								token={this.state.token}
+								name={this.state.name}
+								users={this.state.users}
+								logout={this.getOut}
+								online={this.state.connectedUsers}
+							/>	
+						</div>
+					)
+				}
+				else{
+					return <div className="loader"></div>
+				}
+			}
+		}
+
+
+		class Login extends React.Component{
+
+		  state = {
+		    login : undefined,
+		    password : undefined
+		  }
+
+		  handleEmail = (event) => {
+		    this.setState({
+		      login : event.currentTarget.value
+		    });
+		  }
+
+		  handlePassword = (event) => {
+		    this.setState({
+		      password : event.currentTarget.value
+		    });
+		  }
+
+		  handleSubmit = event => {
+		    event.preventDefault();
+		    this.props.getConnected(this.state.login, this.state.password)
+		  }
+
+			render(){
+				return(
+					<form 
+		        className="alert" 
+		        id="loginform" 
+		        onSubmit={this.handleSubmit}>
+
+		        <div className="form-group" controlId="formBasicEmail">
+		          <label className="btn-toolbar alert-link">Email address :</label>
+		          <input
+		          	className="form-control"
+		            type="email" 
+		            placeholder="Enter email"
+		            onChange={this.handleEmail}
+		          />
+		        </div>
+
+		        <div className="form-group" controlId="formBasicPassword">
+		          <label className="btn-toolbar alert-link">Password :</label>
+		          <input
+		          	className="form-control"
+		            type="password" 
+		            placeholder="Password"
+		            onChange={this.handlePassword}
+		          />
+		        </div>
+
+		        <div id="passwordError">
+		          
+		        </div>
+
+		        <button variant="primary" type="submit" className="btn btn-primary">
+		          Valider
+		        </button>
+
+		        <h5>
+		        	<a href="#register" onClick={this.props.registerForm}>Creer un compte</a>
+		        </h5>
+		      </form>
+				)
+			}
+		}
+
+
+		function Logo(){
+			return(
+				<div id="logoBox">
+					<img id="logo" src="final_logo.png" alt=""/>			
+				</div>
+			)
+		}
+
+
+		class Register extends React.Component{
+
+		  state = {
+		    name : "",
+		    Email : "",
+		    password : "",
+		    PasswordRepeat : ""
+		  }
+
+		  handleNameChange = event => {
+		    this.setState({
+		      name : event.currentTarget.value
+		    });
+		  }
+
+		  handleEmailChange = event => {
+		    this.setState({
+		      email : event.currentTarget.value
+		    });
+		  }
+
+		  handlePasswordChange = event => {
+		    this.setState({
+		      password : event.currentTarget.value
+		    });
+		  }
+
+		  handlePasswordRepeatChange = event => {
+		    this.setState({
+		      PasswordRepeat : event.currentTarget.value
+		    });
+		  }
+
+		  handleSubmit = event => {
+		    event.preventDefault();
+
+		     if(this.state.password !== this.state.PasswordRepeat){
+		      const TEXT = document.createElement("span");
+		      let content = document.createTextNode('The two password are not correspond !');
+		      TEXT.appendChild(content);
+		      document.getElementById('passwordError').appendChild(TEXT);
+		    }
+		    else{
+		      this.props.getRegistred(this.state.name, this.state.email, this.state.password);
+		    }
+		  }
+
+			render(){
+				return(
+					<form className="alert" id="registerform" onSubmit={this.handleSubmit}>
+		        
+		        <div className="form-group" controlId="exampleForm.ControlInput1">
+		          <label className="btn-toolbar alert-link">Full Name :</label>
+		          <input
+		          	className="form-control" 
+		            placeholder="Enter your full name" 
+		            type="text" 
+		            onChange={this.handleNameChange}
+		          />
+		        </div>
+		        
+		        <div className="form-group" controlId="formBasicEmail">
+		          <label className="btn-toolbar alert-link">Email address :</label>
+		          <input
+		          	className="form-control"
+		            placeholder="Enter email" 
+		            type="email" 
+		            onChange={this.handleEmailChange}
+		          />
+		        </div>
+
+		        <div className="form-group" controlId="formBasicPassword">
+		          <label className="btn-toolbar alert-link">Password :</label>
+		          <input
+		          	className="form-control"
+		            placeholder="Password" 
+		            type="password" 
+		            onChange={this.handlePasswordChange}
+		          />
+		        </div>
+
+		        <div className="form-group" controlId="formGroupPassword">
+		          <label className="btn-toolbar alert-link">Confirm Password :</label>
+		          <input
+		          	className="form-control"
+		            placeholder="Password" 
+		            type="password"
+		            onChange={this.handlePasswordRepeatChange}
+		          />
+		        </div>
+
+		        <div id="passwordError">
+		          
+		        </div>
+
+		        <button variant="primary" type="submit" className="btn btn-primary">
+		          Valider
+		        </button>
+
+		        <h5>
+		        	<a href="#login" onClick={this.props.loginForm}>Se connecter</a>
+		        </h5>
+		      </form>
+				)
+			}
+		}
+
+
+		function fetchData(url){
+		  return fetch(url)
+		    .then((response) => response.json())
+		    .catch((error) => console.error(error))
+		}
+			
+
+		class Home extends React.Component{
+
+			state = {
+				interlocutorID : undefined,
+				interlocutorName : undefined,
+				messages : undefined
+			}
+
+
+			getInterlocutorId =(id, name) => {
+				this.setState({
+					interlocutorID : id,
+					interlocutorName : name
+				}, () => {
+					this.loadMessages();
+				})
+				
+			}
+
+			postMessage = () => {
+				if(this.state.interlocutorID === undefined){
+					return(
+						<Textarea
+							connectedUser={this.props.user}
+							interlocutor={this.state.interlocutorID}
+							token={this.props.token}
+						/>
+					)
+				}
+			}
+
+			loadMessages = () => {
+				const URL = 'http://instanchat.epizy.com/instantchatAPI/Api/show/'+this.props.user+'/'+this.state.interlocutorID+'/'+this.props.token;
+
+				fetchData(URL)
+				.then(data => {
+					if(data.status === 'ok'){
+						this.setState({
+							messages : data.data
+						});
+						
+						if(this.state.messages.length !== 0){
+							return(
+								ReactDOM.render(
+									<div id="modal-body">
+										{
+											this.state.messages.map(msg =>
+												<Singlemessage
+													key={msg['message_id']}
+													connectedUser={this.props.user}
+													user={msg['from_user_id']}
+													content={msg['message_body']}
+													editdate={msg['message_edit_at']}
+												/>
+											)
+										}
+									</div>,
+									document.getElementById('fil-discution')
+								)					
+							)
+						}
+						else{
+							return(
+								ReactDOM.render(
+									<div/>,document.getElementById('fil-discution')
+								)
+							)
+						}
+					}
+				})
+				setTimeout(this.loadMessages, 5000);
+			}
+
+			render(){
+				return(
+					<div id="chat">
+						<div className="chat">
+							<div id="card" className="card">
+								<div className="cardHheader">
+									<span>
+										<i className="fas fa-home fa-2x"></i>
+									</span>
+									<strong>
+										{this.props.name}
+									</strong>
+								</div>
+
+								<div className="card-body" id="card-body">
+									<div id="userBox">
+										{
+											this.props.users.map(user => 
+												<User 
+													key={user['user_id'].toString()}
+													connectedUser={this.props.user}
+													user={user['user_id']}
+													token={this.props.token}
+													userName={user['user_name']}
+													setIntelocutor={this.getInterlocutorId}
+													online={this.props.online}
+												/>
+											)
+										}
+									</div>
+								</div>
+								<div className="cardFooter" id="footer">
+									<Input/>
+								</div>
+							</div>
+						</div>
+
+						<div className="chat">
+							<div id="card" className="card">
+								<div className="cardHheader">
+									<div className="d-flex bd-highlight">
+										<div className="user_info">
+											<span id="targetbutton">
+												<i className="fas fa-user"></i>
+											</span>
+											<span id="info_user">{this.state.interlocutorName}</span>
+										</div>
+									</div>
+
+									<span id="disconected" onClick={this.props.logout}>
+										<i className="fas fa-power-off fa-1x "></i>
+									</span>
+								</div>
+
+								<div className="card-body" id="fil-discution">
+									{/*seront injecter les messages*/}
+								</div>
+
+								<div className="cardFooter">
+									<Textarea
+										connectedUser={this.props.user}
+										interlocutor={this.state.interlocutorID}
+										token={this.props.token}
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
+				)
+			}
+		}
+			
+
+		class Textarea extends React.Component{
+
+			state = {
+				message : '',
+				messageValue : '',
+				modal : false
+			}
+
+			handleMessage = (event) => {
+				this.setState({
+					message : event.currentTarget.value,
+				});
+			}
+
+			handleSubmit = (event) => {
+				if(this.props.interlocutor !== undefined && this.state.message !==''){
+					const URL = 'http://instanchat.epizy.com/instantchatAPI/Api/send/'+this.props.connectedUser+'/'+this.props.interlocutor+'/'+this.state.message+'/'+this.props.token;
+					fetchData(URL)
+					.then(data => {
+						if(data.status === 'ok'){
+							this.setState({
+								message : '',
+								messageValue : ''
+							});
+							document.getElementById('saisie').value = '';
+						}
+					});
+				}
+				else{
+					document.getElementById('saisie').value = 'je ne sais pas à qui l\'envoyer';
+				}
+			}
+
+			useThisEmoji = (emo) => {
+				const champ = document.getElementById('saisie');
+				champ.value = champ.value+' '+emo;
+				this.setState({
+					message : this.state.message + emo
+				});
+			}
+
+			showEmoji = () => {
+				ReactDOM.render(
+				  <div className="modal-body" id="Modal">
+				    <p>
+				    	{
+				    		EMOJIS.map(emo =>
+				    			<span
+				    				className="emo"
+				    				key={emo}
+				    				onClick={() => this.useThisEmoji(emo)}
+				    			>
+				    				{emo}
+				    			</span>
+				    		)
+				    	}
+				    </p>
+				  </div>,
+					document.getElementById('emojis')
+				);
+			}
+
+			hideEmojis = () => {
+				ReactDOM.render(
+					<p/>,
+					document.getElementById('emojis')
+				);
+			}
+
+			emojiEontrol = () => {
+				if(this.state.modal === false){
+					this.setState({
+						modal : true
+					});
+					this.showEmoji();
+				}
+				else{
+					this.setState({
+						modal : false
+					});
+					this.hideEmojis();
+				}
+			}
+
+			render(){
+				return(
+					<div className="input-group">
+						<div className="input-group-append">
+							<span className="input-group-text emojis_btn" onClick={this.emojiEontrol}>
+								<i className="fas fa-smile fa-2x"></i>
+							</span>
+							<div id="emojis"></div>
+						</div>
+
+						<textarea
+							id="saisie"
+							rows="1" 
+							className="form-control type_msg" 
+							placeholder="Type your message..."
+							onChange={this.handleMessage}
+						/>
+
+						<div className="input-group-append" onClick={this.handleSubmit}>
+							<span className="input-group-text send_btn">
+								<i className="fas fa-location-arrow"></i>
+							</span>
+						</div>
+					</div>
+				)
+			}
+		}
+
+
+		class User extends React.Component{
+
+			getDiscution = () =>{
+				this.props.setIntelocutor(this.props.user, this.props.userName);
+			} 
+
+			render(){
+				if(this.props.online.find(element => element.connected_user === this.props.user)){
+					return(
+						<div className="d-flex bd-highlight" id="him" onClick={this.getDiscution}>
+							<span className="online"/>
+							<span className="name">
+								{this.props.userName}
+							</span>
+						</div>
+					)
+				}
+				else{
+					return(
+						<div className="d-flex bd-highlight" id="him" onClick={this.getDiscution}>
+							<span className="ofline"/>
+							<span className="name">
+								{this.props.userName}
+							</span>
+						</div>
+					)
+				}
+			}
+		}
+
+		
+
+		class Singlemessage extends React.Component{
+			componentDidMount(){
+				this.forceScroll();
+			}
+
+			forceScroll(){
+		  	const parent = document.getElementById('modal-body');
+		  	if(parent !== undefined){
+		  		parent.scrollTop = document.getElementById('modal-body').scrollHeight;
+		  	}
+			}
+
+			parsedate = (date) => {
+				date = new Date(date*1000);
+				const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+				let hour = date.getHours();
+				let min = date.getMinutes();
+
+				return date.toLocaleDateString(undefined, options)+' / '+hour+':'+min;
+			}
+
+			render(){
+				if(this.props.user === this.props.connectedUser){
+					return(
+						<div className="transmit">
+							<p>
+								{this.props.content}
+								<br/>
+								<span className="datebox">
+									{this.parsedate(this.props.editdate)}
+								</span>
+							</p>
+						</div>
+					)
+				}
+				else{
+					return(
+						<div className="recut">
+							<p>
+								{this.props.content}
+								<br/>
+								<span className="datebox">
+									{this.parsedate(this.props.editdate)}
+								</span>
+							</p>
+						</div>
+					)
+				}
+			}
+		}
+
+
+		class Input extends React.Component{
+			render(){
+				return(
+					<div className="input-group">
+						<input 
+							type="text" 
+							placeholder="Search..." 
+							className="form-control search"
+						/>
+						<div className="input-group-prepend">
+							<span className="input-group-text search_btn">
+								<i className="fas fa-search"></i>
+							</span>
+						</div>
+					</div>	
+				)
+			}
+		}
+
+		ReactDOM.render(<App/>, document.getElementById("root"))
+
+
+		const EMOJIS = [
+			'😂','😀','😁','😍','😘','🤭','🤫','😬','😔','😪','😷','😎','☹','🙈','💋','💘','❤️','👋','🤚','👌','✌','👈','👉','👍','👎','👊','👏','🤝','🙏','💪','👂','👃','🧠','🦷','👀','👁','🤦','🤦‍♂️','🤰','🏃','🏋️‍♂️','🏋️‍♀️','🚴','🗣','🥰','😛','😋','🥺','🐵','🐰','🕊','🐬','🐸','🍉','🍊','🍍','🍌','🍎','🍑','🥝','🍆','🌽','🥕','🌶','🥒','🥜','🍞','🥐','🥖','🥯','🍖','🍗','🥩','🍔','🍟','🌮','🍼','☕','🍾','🍷','🍸','🍺','🥂','🍽','🏥','🏦','🏨','🏫','🏭','🕌','⛪','🕋','🚖','🏍','🛴','🛹'
+		];
+	</script>
+</body>
+</html>

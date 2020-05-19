@@ -1,0 +1,298 @@
+body{
+	margin: 0;
+	padding: 0;
+	background-color: #fff;
+}
+
+.loader {
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  width: 120px;
+  height: 120px;
+  margin: 30% auto;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+@media (min-width: 768px)
+{
+	#root{
+		margin: 5px auto;
+	}
+	
+	#container{
+		padding: 0px 10%;
+	}
+
+	#facade{
+		margin: 150px auto;
+		display: grid;
+		grid-template-columns: 40% 40%;
+		grid-column-gap: 20%;
+	}
+
+	#logo{
+		width: 80%;
+		height: 70%;
+	}
+
+	#loginform{
+	  width: 70%;
+	  margin: 30px auto;
+	  padding: 10% 5%;
+	  border: solid 1px;
+	}
+
+	#registerform{
+		width: 70%;
+	  margin: 30px auto;
+	  padding: 10% 5%;
+	  border: solid 1px;
+	}
+
+	#logoBox{
+		margin: 30px auto;
+	}
+
+	h5{
+		text-align: center;
+	}
+	
+	.chat{
+		border-radius: 1.25rem;
+	}
+
+	#card{
+	  height: 600px;
+	  border-radius: 1.25rem;
+	  border: none;
+	  background-color: #f1faee;
+	}
+
+	.cardHheader{
+		padding: .75rem 1.25rem;
+    margin-bottom: 0;
+    background-color: #457b9d;
+    color: #f1faee;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+    border-top-left-radius: 1.25rem;
+    /*border-top-right-radius: 1.25rem;*/
+	}
+	
+	#chat{
+		width: 90%;
+		display: grid;
+		grid-template-columns: 30% 65%;
+		grid-column-gap: 5%;
+		margin: 6% auto;
+	}
+	
+	.user_info{
+	  margin-top: auto;
+	  margin-bottom: auto;
+	  margin-left: 15px;
+	  padding: 3px;
+	}
+
+	.user_info span{
+	  font-size: 20px;
+	}
+
+	.user_info p{
+	  font-size: 10px;
+	  color: #ffff;
+	}
+
+	#card-body{
+		padding: 0;
+		color: #1d3557;
+	}
+
+	#disconected{
+	  position: absolute;
+	  right: 10px;
+	  top: 10px;
+	  cursor: pointer;
+	  font-size: 25px;
+	}
+
+	.send_btn{
+		background-color: #f1faee!important;
+    color: #1d3557!important;
+	}
+	
+	.send_btn:hover{
+	  cursor: pointer;
+	}
+
+	#passwordError{
+	  color: red;
+	}
+
+	#userBox{
+	  height: 100%;
+	  overflow-y: scroll;
+	  width: 100%;
+	  bottom: 0;
+	  border-top: solid 1px lightgrey;
+	}
+
+	#him{
+    display: grid!important;
+    grid-template-columns: 20% 80%;
+	}
+
+	#him:hover{
+	  cursor: pointer;
+	}
+
+	.online{
+		background-color: #06d6a0;
+    height: 20px;
+    width: 20px;
+   	margin: auto;
+    border-radius: 50%;
+    border-color: #f1faee;
+    border-style: solid;
+	}
+
+	.ofline{
+		background-color: #e5e5e5;
+    height: 20px;
+    width: 20px;
+   	margin: auto;
+    border-radius: 50%;
+    border-color: #f1faee;
+    border-style: solid;
+	}
+
+	#statut{
+	  margin: auto;
+	}
+
+	#fil-discution{
+		padding: 0;
+	}
+
+	#modal-body{
+	  width: 100%;
+	  height: 469px;
+	  overflow-y: scroll;
+	  padding: 0px 10%;
+	  display: grid;
+	  padding-top: 5px;
+	}
+
+	.transmit p{
+		max-width: 70%;
+    font-size: smaller;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin: 2%;
+    border-radius: 25px;
+    background-color: #02c39a;
+    padding: 10px;
+    float: right;
+	}
+
+	.transmit span{
+		font-size: xx-small;
+		float: right;
+	}
+
+	.recut p{
+		font-size: smaller;
+		max-width: 70%;
+    float: left;
+    border-radius: 5px;
+    border-radius: 25px;
+    background-color: #98c1d9;
+    padding: 10px;
+    float: left;
+	}
+
+	.recut span{
+		font-size: xx-small;
+	}
+
+	#targetbutton{
+		margin-right: 10px;
+	}
+
+	#targetbutton:hover{
+		cursor: pointer;
+	}
+
+	.cardFooter{
+		padding: .75rem 1.25rem;
+    background-color: transparent;
+    border-top: 1px solid rgba(0,0,0,.125);
+    background: #457b9d;
+    border-bottom-right-radius: 1.25rem;
+    color: #f1faee;
+	}
+
+	.search {
+    border-radius: 15px 0 0 15px !important; 
+    background-color: rgba(0,0,0,0.3) !important;
+    border: 0 !important;
+    color: white !important;
+	}
+
+	.search_btn {
+    border-radius: 0 15px 15px 0 !important;
+    background-color: rgba(0,0,0,0.3) !important;
+    border: 0 !important;
+    color: white !important;
+    cursor: pointer;
+	}
+
+	.emojis_btn{
+		background-color: #f1faee!important;
+    color: #1d3557!important;
+	}
+
+	.emojis_btn:hover{
+		cursor: pointer;
+	}
+
+	#emojis{
+		position: absolute;
+		bottom: 45px;
+    max-width: 35%;
+	}
+
+	.emo{
+		padding: 2px 2px;
+	}
+
+	.emo:hover{
+		cursor: pointer;
+	}
+
+	#Modal{
+		height: 250px;
+		overflow-y: scroll;
+		padding: 15px 2px;
+		border-top-left-radius: 15px;
+		background-color: #457b9d;
+		opacity: 0.9;
+		/*background-color: rgba(0,0,0,0.8);*/
+	}
+	::-webkit-scrollbar{
+  	width: 6px;
+	}
+	::-webkit-scrollbar-track {
+	  box-shadow: inset 0 0 2.5px 2px grey;
+	}
+	::-webkit-scrollbar-thumb {
+	  background: #1d3557; 
+	}
+
+}
